@@ -1,3 +1,5 @@
+<img width="1024" height="1024" alt="B1-scholar-F" src="https://github.com/user-attachments/assets/d53360d1-53d7-46de-a045-c5e8c0e3ea4e" />
+
 # Frondara
 
 ## Ideas branch. Context holds.
