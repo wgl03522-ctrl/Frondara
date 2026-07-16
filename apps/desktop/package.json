@@ -1,0 +1,49 @@
+{
+  "name": "@pnode/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frondara desktop app with in-process IPC and local Markdown workspaces.",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "bundle": "node esbuild.mjs",
+    "build": "npm run build -w @pnode/core && npm run build -w @pnode/storage && npm run build -w @pnode/server && npm run build -w @pnode/web && npm run bundle",
+    "start": "npm run build && electron .",
+    "pack": "npm run build && electron-builder --dir --win --x64",
+    "dist": "npm run build && electron-builder --win portable --x64",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@pnode/core": "*",
+    "@pnode/server": "*",
+    "@pnode/storage": "*",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "esbuild": "latest",
+    "typescript": "latest"
+  },
+  "build": {
+    "appId": "com.frondara.desktop",
+    "productName": "Frondara",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "package.json"
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.png",
+      "artifactName": "Frondara-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

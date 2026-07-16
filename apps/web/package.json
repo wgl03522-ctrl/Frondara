@@ -1,0 +1,43 @@
+{
+  "name": "@pnode/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@pnode/core": "*",
+    "@tanstack/react-query": "latest",
+    "@tiptap/extension-link": "latest",
+    "@tiptap/extension-mathematics": "latest",
+    "@tiptap/extension-placeholder": "latest",
+    "@tiptap/extension-table": "latest",
+    "@tiptap/extension-task-item": "latest",
+    "@tiptap/extension-task-list": "latest",
+    "@tiptap/markdown": "latest",
+    "@tiptap/pm": "latest",
+    "@tiptap/react": "latest",
+    "@tiptap/starter-kit": "latest",
+    "katex": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zustand": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jsdom": "latest",
+    "msw": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
+}
