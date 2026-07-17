@@ -1,14 +1,19 @@
-<p align="center">
+<div align="center">
   <img width="144" height="144" alt="Frondara" src="https://github.com/user-attachments/assets/d53360d1-53d7-46de-a045-c5e8c0e3ea4e" />
-</p>
+  <h1>Frondara</h1>
+  <p><strong>Ideas branch. Context holds.</strong></p>
+  <p>
+    以文档为中心的非线性 AI 写作与研究工作空间。<br />
+    让文档中的每个关键段落，都成为 AI 对话生长的起点。
+  </p>
+  <p>
+    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/download/v0.1.0/Frondara-0.1.0-portable.exe"><strong>下载 Frondara 0.1.0 · Windows x64 便携版</strong></a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/tag/v0.1.0">发布说明</a>
+  </p>
+</div>
 
-# Frondara
-
-## Ideas branch. Context holds.
-
-> **让文档中的每个关键段落，都成为 AI 对话生长的起点。**
-
-**Frondara** 是一个以文档为中心的非线性 AI 写作与研究工作空间。
+---
 
 你可以从正文中的任意段落发起讨论，让 AI 检查论证、提出反例、补充思路、分析证据，或生成修改建议。每场讨论都与其对应的原文、上下文和文档版本保持关联，不会因为对话变长，文档继续修改或对每段都展开讨论而轻易失去语境。
 
