@@ -3,7 +3,8 @@
   <h1>Frondara</h1>
   <p><strong>Ideas branch. Context holds.</strong></p>
   <p>
-    以文档为中心的非线性 AI 写作与研究工作空间。<br />
+   <strong><ins>非线性</ins></strong>
+    AI写作与研究工作空间。<br />
     让文档中的每个关键段落，都成为 AI 对话生长的起点。
   </p>
   <p>
