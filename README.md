@@ -1,4 +1,6 @@
-<img width="1024" height="1024" alt="B1-scholar-F" src="https://github.com/user-attachments/assets/d53360d1-53d7-46de-a045-c5e8c0e3ea4e" />
+<p align="center">
+  <img width="144" height="144" alt="Frondara" src="https://github.com/user-attachments/assets/d53360d1-53d7-46de-a045-c5e8c0e3ea4e" />
+</p>
 
 # Frondara
 
@@ -17,6 +19,14 @@ Frondara 不是放在编辑器旁边的另一个聊天框。
 在这里，文档始终是主干。
 
 想法可以分支，上下文依然稳固，最终决定始终掌握在作者手中。
+
+## 产品预览
+
+| 段落级 AI 讨论 | 非线性讨论分支 |
+| :---: | :---: |
+| ![从正文锚点发起 AI 讨论](assets/editor-discussion.png) | ![以分支图查看不同讨论方向](assets/discussion-branches.png) |
+| **可控的上下文** | **可审阅的 AI 建议** |
+| ![查看并控制 AI 使用的上下文](assets/context-control.png) | ![审阅 AI 建议后再决定是否应用](assets/ai-suggestion.png) |
 
 ## 为什么线性 AI 聊天不适合复杂写作？
 
@@ -96,6 +106,8 @@ Frondara 不要求每场对话都不断分支。
 
 > **非线性不是为了制造复杂，而是为了让复杂问题保持清晰。**
 
+![Frondara 真实讨论分支图](assets/discussion-branches.png)
+
 ------
 
 ## 2. 与原文持续关联的 AI 互动批注
@@ -131,6 +143,8 @@ Frondara 不要求每场对话都不断分支。
 
 > **批注与原文之间的关系依然可信。**
 
+![与原文锚点持续关联的 AI 讨论](assets/editor-discussion.png)
+
 ------
 
 ## 3. 上下文可见、可控，而不是无限累积
@@ -163,6 +177,8 @@ Frondara 将上下文作为一个可管理的结构。
 
 **Ideas branch. Context holds.** 不只是一句品牌表达，也对应 Frondara 的核心交互原则：探索可以开放，但上下文必须可控。
 
+![查看并控制当前 AI 讨论使用的上下文](assets/context-control.png)
+
 ------
 
 ## 4. AI 建议，而不是无提示地覆盖正文
@@ -186,6 +202,8 @@ AI 可以参与修改，但不应该未经确认替作者决定最终文本。
 这让 AI 从“自动生成器”变成一种更可靠的协作工具：
 
 > AI 负责提出可能性，作者负责判断和整合。
+
+![审阅 AI 修改建议并选择拒绝或应用](assets/ai-suggestion.png)
 
 ------
 
@@ -231,6 +249,8 @@ Frondara 借鉴 Git 的核心思想，但不会要求用户理解提交、变基
 并排查看多个候选版本，判断哪一个更准确、更清晰，或更符合当前写作目标。
 
 Frondara 提供的是一种 **Git-inspired writing workflow**，而不是把软件开发界面直接搬进写作工具。
+
+![浏览文档版本历史并恢复关键节点](assets/version-history.png)
 
 ## 一个更自然的 AI 写作流程
 
