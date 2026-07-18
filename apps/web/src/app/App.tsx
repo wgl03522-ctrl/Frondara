@@ -7,8 +7,9 @@ import { BranchGraphOverlay } from '../features/discussions/BranchGraphOverlay.j
 import { ContextPanel } from '../features/discussions/ContextPanel.js';
 import { connectedDiscussions } from '../features/discussions/branch-family.js';
 import { EditorWorkspace } from '../features/editor/EditorWorkspace.js';
-import { AiSettingsDialog } from '../features/settings/AiSettingsDialog.js';
+import { SettingsDialog } from '../features/settings/SettingsDialog.js';
 import { aiErrorMessage } from '../features/settings/ai-error-message.js';
+import { useI18n } from '../i18n/I18nProvider.js';
 import { FilePanel } from '../features/workspace/FilePanel.js';
 import { VersionPanel } from '../features/workspace/VersionPanel.js';
 import { SearchPanel } from '../features/workspace/SearchPanel.js';
@@ -33,6 +34,7 @@ const DEFAULT_CONTEXT_SPEC: ContextSpec = {
 };
 
 export function App() {
+  const { locale, t } = useI18n();
   const filePanelOpen = useUiStore((state) => state.filePanelOpen);
   const discussionOpen = useUiStore((state) => state.discussionOpen);
   const lastDocument = useUiStore((state) => state.lastDocument);
@@ -94,7 +96,7 @@ export function App() {
           window.setTimeout(() => void initialize(attempt + 1), 250 * (attempt + 1));
           return;
         }
-        setWorkspaceError(caught instanceof Error ? caught.message : '无法连接本地服务');
+        setWorkspaceError(caught instanceof Error ? caught.message : t('app.connectFailed'));
         setDocumentsLoading(false);
       }
     }
@@ -144,7 +146,7 @@ export function App() {
         setActiveDocumentState(undefined);
       }
     } catch (caught: unknown) {
-      setWorkspaceError(caught instanceof Error ? caught.message : '无法打开工作区');
+      setWorkspaceError(caught instanceof Error ? caught.message : t('app.openWorkspaceFailed'));
     } finally {
       setDocumentsLoading(false);
     }
@@ -194,7 +196,7 @@ export function App() {
   }
 
   async function createDocument(path: string) {
-    await api.createDocument(path, '# 新文档\n\n');
+    await api.createDocument(path, `# ${t('app.newDocumentTitle')}\n\n`);
     setEntries(await api.listDocuments());
     openDocument(path);
   }
@@ -247,7 +249,7 @@ export function App() {
         setPendingDiscussion(undefined);
       }
     } catch (caught: unknown) {
-      setDiscussionError(aiErrorMessage(caught, 'AI 讨论请求失败，请稍后重试。'));
+      setDiscussionError(aiErrorMessage(caught, locale, t('app.discussionFailed')));
     } finally {
       setSending(false);
     }
@@ -262,7 +264,7 @@ export function App() {
       setDiscussions((current) => [...current, response.discussion]);
       setSelectedDiscussion(response.discussion);
     } catch (caught: unknown) {
-      setDiscussionError(aiErrorMessage(caught, '创建讨论方向失败，请稍后重试。'));
+      setDiscussionError(aiErrorMessage(caught, locale, t('app.forkFailed')));
     } finally {
       setSending(false);
     }
@@ -275,7 +277,7 @@ export function App() {
       replaceDiscussion(renamed);
       if (selectedDiscussion?.id === renamed.id) setSelectedDiscussion(renamed);
     } catch (caught: unknown) {
-      setDiscussionError(aiErrorMessage(caught, '重命名讨论失败，请稍后重试。'));
+      setDiscussionError(aiErrorMessage(caught, locale, t('app.renameFailed')));
     }
   }
 
@@ -312,12 +314,12 @@ export function App() {
   // A short human summary of the active context selection for the composer chip.
   const contextSummary = (() => {
     const parts: string[] = [];
-    if (contextSpec.includeDocument) parts.push('文档');
-    if (contextSpec.includeParagraph) parts.push('段落');
-    if (contextSpec.includeHistory) parts.push('历史');
+    if (contextSpec.includeDocument) parts.push(t('app.context.document'));
+    if (contextSpec.includeParagraph) parts.push(t('app.context.paragraph'));
+    if (contextSpec.includeHistory) parts.push(t('app.context.history'));
     const extra = contextSpec.filePaths.length + contextSpec.discussionIds.length;
     if (extra > 0) parts.push(`+${extra}`);
-    return parts.length > 0 ? parts.join(' · ') : '无';
+    return parts.length > 0 ? parts.join(' · ') : t('common.none');
   })();
 
   return (
@@ -366,11 +368,11 @@ export function App() {
             onClose={() => setSearchOpen(false)}
           />
         )}
-        <main aria-label="主文档" className="editor-region">
+        <main aria-label={t('app.mainDocument')} className="editor-region">
           {workspaceOpen === false ? (
             <OpenWorkspace loading={documentsLoading} error={workspaceError} onOpen={openWorkspace} />
           ) : workspaceOpen === undefined ? (
-            <div className="editor-loading" role="status">正在连接本地服务…</div>
+            <div className="editor-loading" role="status">{t('app.connecting')}</div>
           ) : (
             <EditorWorkspace
               key={`${activeDocument ?? 'empty'}:${reloadNonce}`}
@@ -416,7 +418,7 @@ export function App() {
           />
         )}
       </div>
-      {settingsOpen && <AiSettingsDialog onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       {graphOpen && (
         <BranchGraphOverlay
           discussions={graphDiscussions}
@@ -426,7 +428,7 @@ export function App() {
         />
       )}
       <footer className="status-bar">
-        <span>{activeDocument ? `Markdown · ${discussions.length} 条讨论` : '准备就绪'}</span>
+        <span>{activeDocument ? `Markdown · ${t('app.discussionCount', { count: discussions.length })}` : t('app.ready')}</span>
         <span>UTF-8</span>
       </footer>
     </div>

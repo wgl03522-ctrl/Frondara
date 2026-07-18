@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { DocumentEntry } from '../../api/client.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 import { NewDocumentDialog } from './NewDocumentDialog.js';
 
 interface FilePanelProps {
@@ -23,6 +24,7 @@ export function FilePanel({
   onCreateDocument,
   onClose
 }: FilePanelProps) {
+  const { t } = useI18n();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 
@@ -46,26 +48,26 @@ export function FilePanel({
   }
 
   return (
-    <aside className="file-panel" aria-label="文件面板">
+    <aside className="file-panel" aria-label={t('files.panel')}>
       <header className="panel-header file-panel-header">
         <div>
-          <span className="eyebrow">工作区</span>
-          <h2>文件</h2>
+          <span className="eyebrow">{t('common.workspace')}</span>
+          <h2>{t('files.title')}</h2>
         </div>
-        <button type="button" className="icon-button" aria-label="关闭文件" onClick={onClose}>×</button>
+        <button type="button" className="icon-button" aria-label={t('files.close')} onClick={onClose}>×</button>
       </header>
       <div className="file-panel-actions">
-        <button type="button" className="button button--subtle" onClick={() => setDialogOpen(true)}>新建文档</button>
+        <button type="button" className="button button--subtle" onClick={() => setDialogOpen(true)}>{t('files.newDocument')}</button>
       </div>
       {loading ? (
-        <p className="panel-message" role="status">正在读取工作区…</p>
+        <p className="panel-message" role="status">{t('files.loading')}</p>
       ) : visibleEntries.length === 0 ? (
         <div className="panel-message">
-          <strong>没有 Markdown 文档</strong>
-          <p>新建一个文档开始研究写作。</p>
+          <strong>{t('files.emptyTitle')}</strong>
+          <p>{t('files.emptyBody')}</p>
         </div>
       ) : (
-        <div className="file-tree" role="tree" aria-label="工作区文件">
+        <div className="file-tree" role="tree" aria-label={t('files.tree')}>
           {visibleEntries.map((entry) => {
             const depth = depthOf(entry.path);
             const isFolder = entry.type === 'folder';

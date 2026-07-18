@@ -9,12 +9,12 @@ export interface PnodeBridge {
     body?: unknown;
     headers?: Record<string, string>;
   }): Promise<{ status: number; body: string; contentType: string }>;
-  pickFolder(): Promise<string | null>;
+  pickFolder(locale: 'zh-CN' | 'en-US'): Promise<string | null>;
 }
 
 const bridge: PnodeBridge = {
   invoke: (payload) => ipcRenderer.invoke('pnode:invoke', payload),
-  pickFolder: () => ipcRenderer.invoke('pnode:pick-folder')
+  pickFolder: (locale) => ipcRenderer.invoke('pnode:pick-folder', locale)
 };
 
 contextBridge.exposeInMainWorld('pnode', bridge);

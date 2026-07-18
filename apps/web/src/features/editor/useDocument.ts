@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type DocumentRecord } from '../../api/client.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 export type DocumentSaveState = 'idle' | 'saving' | 'saved' | 'conflict' | 'error';
 
 export function useDocument(documentPath: string | undefined) {
+  const { t } = useI18n();
   const [document, setDocument] = useState<DocumentRecord | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -30,11 +32,11 @@ export function useDocument(documentPath: string | undefined) {
       setDocument(next);
       setSaveState('idle');
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : '无法读取文档');
+      setError(caught instanceof Error ? caught.message : t('editor.readFailed'));
     } finally {
       setLoading(false);
     }
-  }, [documentPath]);
+  }, [documentPath, t]);
 
   useEffect(() => {
     void load();
@@ -54,9 +56,9 @@ export function useDocument(documentPath: string | undefined) {
         return;
       }
       setSaveState('error');
-      setError(caught instanceof Error ? caught.message : '保存失败');
+      setError(caught instanceof Error ? caught.message : t('editor.saveFailed'));
     }
-  }, [documentPath, saveState]);
+  }, [documentPath, saveState, t]);
 
   return { document, currentVersionId, loading, error, saveState, save, reload: load };
 }

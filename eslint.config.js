@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', 'node_modules/**', 'playwright-report/**', 'test-results/**'] },
+  { ignores: ['**/dist/**', '**/coverage/**', 'node_modules/**', '.superpowers/**', 'playwright-report/**', 'test-results/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -21,7 +21,8 @@ export default tseslint.config(
     languageOptions: { globals: globals.node }
   },
   {
-    // Node build scripts use globals that are not available in browser code.
+    // Node build/util scripts (esbuild bundler, image generators). Plain JS, so
+    // no-undef is active — give them the Node globals they rely on.
     files: ['**/*.mjs'],
     languageOptions: { globals: globals.node }
   }

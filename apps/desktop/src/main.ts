@@ -19,6 +19,20 @@ interface InvokePayload {
   headers?: Record<string, string>;
 }
 
+type Locale = 'zh-CN' | 'en-US';
+
+export function normalizeLocale(value: unknown): Locale {
+  return value === 'en-US' ? 'en-US' : 'zh-CN';
+}
+
+export function folderPickerTitle(locale: Locale): string {
+  return locale === 'en-US' ? 'Select workspace folder' : '选择工作区文件夹';
+}
+
+export function startupErrorTitle(systemLocale: string): string {
+  return systemLocale.toLowerCase().startsWith('en') ? 'Frondara failed to start' : 'Frondara 启动失败';
+}
+
 async function createServer(): Promise<FastifyInstance> {
   // No initialWorkspace: the user picks a folder from the UI (which persists it
   // in UI state). Config/credentials resolve to the per-user APPDATA dir.
@@ -45,9 +59,9 @@ function registerIpc(instance: FastifyInstance): void {
   });
 
   // Native folder picker for "open workspace" — returns an absolute path or null.
-  ipcMain.handle('pnode:pick-folder', async () => {
+  ipcMain.handle('pnode:pick-folder', async (_event, locale: unknown) => {
     const result = await dialog.showOpenDialog({
-      title: '选择工作区文件夹',
+      title: folderPickerTitle(normalizeLocale(locale)),
       properties: ['openDirectory', 'createDirectory']
     });
     return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
@@ -98,7 +112,7 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) void createWindow();
   });
 }).catch((error: unknown) => {
-  dialog.showErrorBox('Frondara 启动失败', error instanceof Error ? error.message : String(error));
+  dialog.showErrorBox(startupErrorTitle(app.getLocale()), error instanceof Error ? error.message : String(error));
   app.quit();
 });
 

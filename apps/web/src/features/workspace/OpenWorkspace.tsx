@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { isDesktop, pickWorkspaceFolder } from '../../api/client.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 import logoUrl from '../../assets/logo.png';
 
 interface OpenWorkspaceProps {
@@ -9,13 +10,12 @@ interface OpenWorkspaceProps {
 }
 
 export function OpenWorkspace({ loading, error, onOpen }: OpenWorkspaceProps) {
+  const { locale, t } = useI18n();
   const [path, setPath] = useState('');
   const desktop = isDesktop();
 
-  // In the desktop shell, the native folder picker fills the field (and opens
-  // immediately on a confirmed pick). Elsewhere the user types a path by hand.
   async function browse() {
-    const picked = await pickWorkspaceFolder();
+    const picked = await pickWorkspaceFolder(locale);
     if (picked) {
       setPath(picked);
       await onOpen(picked);
@@ -27,20 +27,11 @@ export function OpenWorkspace({ loading, error, onOpen }: OpenWorkspaceProps) {
       <img className="empty-document-mark" src={logoUrl} alt="" aria-hidden="true" />
       <span className="brand-wordmark">Frondara</span>
       <span className="eyebrow">Ideas branch. Context holds.</span>
-      <h1>打开一个本地工作区</h1>
-      <p>
-        {desktop
-          ? '选择包含 Markdown 文档的文件夹。讨论、版本和界面状态会保存在该目录的 .pnode 中。'
-          : '输入包含 Markdown 文档的文件夹路径。讨论、版本和界面状态会保存在该目录的 .pnode 中。'}
-      </p>
+      <h1>{t('open.title')}</h1>
+      <p>{desktop ? t('open.desktopDescription') : t('open.browserDescription')}</p>
       {desktop && (
-        <button
-          type="button"
-          className="button button--primary"
-          disabled={loading}
-          onClick={() => void browse()}
-        >
-          {loading ? '正在打开' : '选择文件夹…'}
+        <button type="button" className="button button--primary" disabled={loading} onClick={() => void browse()}>
+          {loading ? t('open.opening') : t('open.chooseFolder')}
         </button>
       )}
       <form
@@ -50,7 +41,7 @@ export function OpenWorkspace({ loading, error, onOpen }: OpenWorkspaceProps) {
           if (path.trim()) void onOpen(path.trim());
         }}
       >
-        <label htmlFor="workspace-path">{desktop ? '或手动输入路径' : '工作区文件夹路径'}</label>
+        <label htmlFor="workspace-path">{desktop ? t('open.manualPath') : t('open.folderPath')}</label>
         <div>
           <input
             id="workspace-path"
@@ -59,7 +50,7 @@ export function OpenWorkspace({ loading, error, onOpen }: OpenWorkspaceProps) {
             placeholder="C:\\Research\\paper"
           />
           <button className="button button--primary" disabled={!path.trim() || loading} type="submit">
-            {loading ? '正在打开' : '打开工作区'}
+            {loading ? t('open.opening') : t('open.openWorkspace')}
           </button>
         </div>
         {error && <p className="form-error" role="alert">{error}</p>}

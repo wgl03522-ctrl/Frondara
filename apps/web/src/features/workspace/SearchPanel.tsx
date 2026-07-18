@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type SearchHit } from '../../api/client.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 interface SearchPanelProps {
   onOpenDocument(path: string): void;
@@ -7,13 +8,13 @@ interface SearchPanelProps {
 }
 
 export function SearchPanel({ onOpenDocument, onClose }: SearchPanelProps) {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string>();
   const [searched, setSearched] = useState(false);
 
-  // Debounce the query so we don't fire a scan on every keystroke.
   useEffect(() => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -28,7 +29,7 @@ export function SearchPanel({ onOpenDocument, onClose }: SearchPanelProps) {
       api.searchDocuments(trimmed)
         .then((results) => { if (!cancelled) { setHits(results); setSearched(true); } })
         .catch((caught: unknown) => {
-          if (!cancelled) setError(caught instanceof Error ? caught.message : '搜索失败');
+          if (!cancelled) setError(caught instanceof Error ? caught.message : t('search.failed'));
         })
         .finally(() => { if (!cancelled) setSearching(false); });
     }, 250);
@@ -41,21 +42,21 @@ export function SearchPanel({ onOpenDocument, onClose }: SearchPanelProps) {
   const totalMatches = hits.reduce((sum, hit) => sum + hit.matches.length, 0);
 
   return (
-    <aside className="file-panel search-panel" aria-label="搜索">
+    <aside className="file-panel search-panel" aria-label={t('search.title')}>
       <header className="panel-header file-panel-header">
         <div>
-          <span className="eyebrow">工作区</span>
-          <h2>搜索</h2>
+          <span className="eyebrow">{t('common.workspace')}</span>
+          <h2>{t('search.title')}</h2>
         </div>
-        <button type="button" className="icon-button" aria-label="关闭搜索" onClick={onClose}>×</button>
+        <button type="button" className="icon-button" aria-label={t('search.close')} onClick={onClose}>×</button>
       </header>
       <div className="search-input-row">
         <input
           ref={inputRef}
           type="search"
           className="search-input"
-          aria-label="搜索文档内容"
-          placeholder="搜索所有文档内容…"
+          aria-label={t('search.aria')}
+          placeholder={t('search.placeholder')}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -63,17 +64,17 @@ export function SearchPanel({ onOpenDocument, onClose }: SearchPanelProps) {
       {error ? (
         <p className="panel-message" role="alert">{error}</p>
       ) : searching ? (
-        <p className="panel-message" role="status">正在搜索…</p>
+        <p className="panel-message" role="status">{t('search.searching')}</p>
       ) : !query.trim() ? (
         <div className="panel-message">
-          <strong>全文搜索</strong>
-          <p>输入关键字，搜索工作区内所有 Markdown 文档。</p>
+          <strong>{t('search.fullText')}</strong>
+          <p>{t('search.description')}</p>
         </div>
       ) : searched && hits.length === 0 ? (
-        <p className="panel-message">没有匹配「{query.trim()}」的内容。</p>
+        <p className="panel-message">{t('search.noResults', { query: query.trim() })}</p>
       ) : (
-        <div className="search-results" aria-label="搜索结果">
-          <p className="search-summary">{hits.length} 个文档 · {totalMatches} 处匹配</p>
+        <div className="search-results" aria-label={t('search.results')}>
+          <p className="search-summary">{t('search.summary', { documents: hits.length, matches: totalMatches })}</p>
           {hits.map((hit) => (
             <div className="search-hit" key={hit.path}>
               <button type="button" className="search-hit-file" onClick={() => onOpenDocument(hit.path)}>

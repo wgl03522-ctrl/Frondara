@@ -1,4 +1,5 @@
 import type { Discussion, PublicAiSettings, TextAnchor, UiState, Version } from '@pnode/core';
+import type { Locale } from '../i18n/messages.js';
 
 export interface DocumentEntry {
   type: 'file' | 'folder';
@@ -86,7 +87,7 @@ interface PnodeBridge {
     body?: unknown;
     headers?: Record<string, string>;
   }): Promise<{ status: number; body: string; contentType: string }>;
-  pickFolder(): Promise<string | null>;
+  pickFolder(locale: Locale): Promise<string | null>;
 }
 
 function bridge(): PnodeBridge | undefined {
@@ -135,10 +136,10 @@ export function isDesktop(): boolean {
 
 // Native folder picker (Electron only). Returns an absolute path or null when
 // the user cancels. Throws if called outside the desktop shell.
-export function pickWorkspaceFolder(): Promise<string | null> {
+export function pickWorkspaceFolder(locale: Locale): Promise<string | null> {
   const pnode = bridge();
   if (!pnode) throw new Error('NOT_DESKTOP');
-  return pnode.pickFolder();
+  return pnode.pickFolder(locale);
 }
 
 export const api = {

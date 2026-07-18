@@ -6,6 +6,7 @@ import {
   SettingsIcon,
   GraphIcon
 } from '../../components/icons.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 interface WorkspaceRailProps {
   filePanelOpen: boolean;
@@ -32,14 +33,15 @@ export function WorkspaceRail({
   graphAvailable = false,
   onOpenGraph
 }: WorkspaceRailProps) {
+  const { t } = useI18n();
   return (
-    <nav className="workspace-rail" aria-label="工作区工具">
+    <nav className="workspace-rail" aria-label={t('rail.tools')}>
       <div className="rail-actions">
         <button
           type="button"
           className="rail-button"
           data-active={filePanelOpen}
-          aria-label={filePanelOpen ? '关闭文件' : '打开文件'}
+          aria-label={filePanelOpen ? t('rail.closeFiles') : t('rail.openFiles')}
           onClick={onToggleFiles}
         >
           <FilesIcon />
@@ -48,19 +50,19 @@ export function WorkspaceRail({
           type="button"
           className="rail-button"
           data-active={searchOpen}
-          aria-label={searchOpen ? '关闭搜索' : '搜索'}
+          aria-label={searchOpen ? t('rail.closeSearch') : t('rail.search')}
           onClick={onToggleSearch}
         >
           <SearchIcon />
         </button>
-        <button type="button" className="rail-button" aria-label="讨论" onClick={onOpenDiscussions}>
+        <button type="button" className="rail-button" aria-label={t('rail.discussions')} onClick={onOpenDiscussions}>
           <DiscussionsIcon />
         </button>
         <button
           type="button"
           className="rail-button"
           data-active={versionsOpen}
-          aria-label={versionsOpen ? '关闭版本历史' : '版本历史'}
+          aria-label={versionsOpen ? t('rail.closeVersions') : t('rail.versions')}
           onClick={onToggleVersions}
         >
           <VersionsIcon />
@@ -68,11 +70,11 @@ export function WorkspaceRail({
       </div>
       <div className="rail-actions">
         {graphAvailable && onOpenGraph && (
-          <button type="button" className="rail-button" aria-label="展开树图" onClick={onOpenGraph}>
+          <button type="button" className="rail-button" aria-label={t('rail.graph')} onClick={onOpenGraph}>
             <GraphIcon />
           </button>
         )}
-        <button type="button" className="rail-button rail-settings" aria-label="设置" onClick={onOpenSettings}>
+        <button type="button" className="rail-button rail-settings" aria-label={t('rail.settings')} onClick={onOpenSettings}>
           <SettingsIcon />
         </button>
       </div>

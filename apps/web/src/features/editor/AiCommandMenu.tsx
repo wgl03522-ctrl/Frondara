@@ -1,11 +1,5 @@
 import { useState } from 'react';
-
-const shortcuts = [
-  ['检查论证', '检查这段论证的前提、证据和结论强度'],
-  ['提供修改建议', '请提供更清晰、准确且保持原意的修改建议'],
-  ['解释所选内容', '解释这段内容的含义、关键概念和推理过程'],
-  ['查找引用需求', '判断这段内容中哪些陈述需要文献支持，并说明原因']
-] as const;
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 interface AiCommandMenuProps {
   initialQuestion?: string | undefined;
@@ -14,33 +8,40 @@ interface AiCommandMenuProps {
 }
 
 export function AiCommandMenu({ initialQuestion = '', onOpen, onCancel }: AiCommandMenuProps) {
+  const { t } = useI18n();
   const [question, setQuestion] = useState(initialQuestion);
+  const shortcuts = [
+    [t('commands.argumentLabel'), t('commands.argumentPrompt')],
+    [t('commands.reviseLabel'), t('commands.revisePrompt')],
+    [t('commands.explainLabel'), t('commands.explainPrompt')],
+    [t('commands.citationsLabel'), t('commands.citationsPrompt')]
+  ] as const;
 
   return (
-    <section className="ai-command-menu" aria-label="AI 讨论命令">
-      <label htmlFor="discussion-question">讨论问题</label>
+    <section className="ai-command-menu" aria-label={t('commands.aria')}>
+      <label htmlFor="discussion-question">{t('commands.question')}</label>
       <textarea
         id="discussion-question"
-        aria-label="讨论问题"
+        aria-label={t('commands.question')}
         value={question}
         onChange={(event) => setQuestion(event.target.value)}
-        placeholder="自由输入你想讨论的问题…"
+        placeholder={t('commands.placeholder')}
         autoFocus
       />
-      <div className="command-shortcuts" aria-label="快捷命令">
+      <div className="command-shortcuts" aria-label={t('commands.shortcuts')}>
         {shortcuts.map(([label, prompt]) => (
           <button type="button" key={label} onClick={() => setQuestion(prompt)}>{label}</button>
         ))}
       </div>
       <div className="command-actions">
-        <button type="button" className="button button--ghost" onClick={onCancel}>取消</button>
+        <button type="button" className="button button--ghost" onClick={onCancel}>{t('common.cancel')}</button>
         <button
           type="button"
           className="button button--primary"
           disabled={!question.trim()}
           onClick={() => onOpen(question.trim())}
         >
-          打开讨论
+          {t('commands.open')}
         </button>
       </div>
     </section>

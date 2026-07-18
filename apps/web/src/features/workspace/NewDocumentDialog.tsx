@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 interface NewDocumentDialogProps {
   onCancel(): void;
@@ -15,6 +16,7 @@ function isValidDocumentPath(path: string): boolean {
 }
 
 export function NewDocumentDialog({ onCancel, onCreate }: NewDocumentDialogProps) {
+  const { t } = useI18n();
   const [path, setPath] = useState('');
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +24,7 @@ export function NewDocumentDialog({ onCancel, onCreate }: NewDocumentDialogProps
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!isValidDocumentPath(path)) {
-      setError('请输入工作区内的 .md 相对路径');
+      setError(t('newDocument.invalidPath'));
       return;
     }
     setSubmitting(true);
@@ -30,7 +32,7 @@ export function NewDocumentDialog({ onCancel, onCreate }: NewDocumentDialogProps
     try {
       await onCreate(path.trim().replaceAll('\\', '/'));
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : '创建文档失败');
+      setError(caught instanceof Error ? caught.message : t('newDocument.failed'));
     } finally {
       setSubmitting(false);
     }
@@ -39,10 +41,10 @@ export function NewDocumentDialog({ onCancel, onCreate }: NewDocumentDialogProps
   return (
     <div className="dialog-backdrop" role="presentation">
       <section className="new-document-dialog" role="dialog" aria-modal="true" aria-labelledby="new-document-title">
-        <h2 id="new-document-title">新建 Markdown 文档</h2>
-        <p>路径相对于当前工作区，可以包含文件夹。</p>
+        <h2 id="new-document-title">{t('newDocument.title')}</h2>
+        <p>{t('newDocument.description')}</p>
         <form onSubmit={submit}>
-          <label htmlFor="document-path">文档路径</label>
+          <label htmlFor="document-path">{t('newDocument.path')}</label>
           <input
             id="document-path"
             name="document-path"
@@ -53,9 +55,9 @@ export function NewDocumentDialog({ onCancel, onCreate }: NewDocumentDialogProps
           />
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="dialog-actions">
-            <button type="button" className="button button--ghost" onClick={onCancel}>取消</button>
+            <button type="button" className="button button--ghost" onClick={onCancel}>{t('common.cancel')}</button>
             <button type="submit" className="button button--primary" disabled={submitting}>
-              {submitting ? '正在创建' : '创建'}
+              {submitting ? t('common.creating') : t('common.create')}
             </button>
           </div>
         </form>

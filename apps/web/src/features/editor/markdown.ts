@@ -87,14 +87,14 @@ const FootnoteDefinition = Node.create({
   }
 });
 
-export function createEditorExtensions() {
+export function createEditorExtensions(placeholder = '开始写下你的研究问题…') {
   return [
     StarterKit.configure({
       link: { openOnClick: false },
       codeBlock: { enableTabIndentation: true }
     }),
     TableKit.configure({ table: { resizable: true } }),
-    Placeholder.configure({ placeholder: '开始写下你的研究问题…' }),
+    Placeholder.configure({ placeholder }),
     Markdown,
     Mathematics.configure({ katexOptions: { throwOnError: false } }),
     FootnoteReference,

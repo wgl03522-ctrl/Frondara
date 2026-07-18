@@ -1,19 +1,28 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AiSettingsDialog } from '../src/features/settings/AiSettingsDialog.js';
+import { SettingsDialog } from '../src/features/settings/SettingsDialog.js';
+import { I18nProvider } from '../src/i18n/I18nProvider.js';
+import { LOCALE_STORAGE_KEY } from '../src/i18n/messages.js';
 import { api, ApiError } from '../src/api/client.js';
 
-afterEach(() => vi.restoreAllMocks());
+function renderSettings(props: Parameters<typeof SettingsDialog>[0]) {
+  return render(<I18nProvider><SettingsDialog {...props} /></I18nProvider>);
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  window.localStorage.clear();
+});
 
 function mockDemoSettings() {
   vi.spyOn(api, 'readAiSettings').mockResolvedValue({ mode: 'demo', baseUrl: '', model: '', hasApiKey: false });
 }
 
-describe('AiSettingsDialog', () => {
+describe('SettingsDialog', () => {
   it('defaults to demo mode with a blank, provider-free compatible form', async () => {
     mockDemoSettings();
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     await waitFor(() => expect(api.readAiSettings).toHaveBeenCalled());
     const demoRadio = await screen.findByRole('radio', { name: /演示模式/ });
@@ -32,7 +41,7 @@ describe('AiSettingsDialog', () => {
     vi.spyOn(api, 'readAiSettings').mockResolvedValue({
       mode: 'compatible', baseUrl: 'https://api.example.com/v1/', model: 'demo-model', hasApiKey: true
     });
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     expect(await screen.findByText(/已保存 API 密钥；留空将继续使用/)).toBeVisible();
     expect(screen.getByLabelText('API Key')).toHaveValue('');
@@ -45,7 +54,7 @@ describe('AiSettingsDialog', () => {
       mode: 'compatible', baseUrl: 'https://api.example.com/v1/', model: 'demo-model', hasApiKey: true
     });
     const onSaved = vi.fn();
-    render(<AiSettingsDialog onClose={vi.fn()} onSaved={onSaved} />);
+    renderSettings({ onClose: vi.fn(), onSaved });
 
     await screen.findByRole('radio', { name: /演示模式/ });
     await userEvent.click(screen.getByRole('radio', { name: /使用自己的 API/ }));
@@ -64,7 +73,7 @@ describe('AiSettingsDialog', () => {
   it('tests the current unsaved values and reports success', async () => {
     mockDemoSettings();
     const test = vi.spyOn(api, 'testAiSettings').mockResolvedValue({ ok: true, model: 'demo-model', latencyMs: 42 });
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     await screen.findByRole('radio', { name: /演示模式/ });
     await userEvent.click(screen.getByRole('radio', { name: /使用自己的 API/ }));
@@ -82,7 +91,7 @@ describe('AiSettingsDialog', () => {
   it('translates a stable error code on save failure and keeps the form', async () => {
     mockDemoSettings();
     vi.spyOn(api, 'saveAiSettings').mockRejectedValue(new ApiError(401, 'AI_AUTH_FAILED', 'boom'));
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     await screen.findByRole('radio', { name: /演示模式/ });
     await userEvent.click(screen.getByRole('radio', { name: /使用自己的 API/ }));
@@ -100,7 +109,7 @@ describe('AiSettingsDialog', () => {
     vi.spyOn(api, 'readAiSettings').mockResolvedValue({
       mode: 'compatible', baseUrl: 'https://api.example.com/v1/', model: 'demo-model', hasApiKey: true
     });
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     const summary = await screen.findByRole('region', { name: '当前生效配置' });
     expect(summary).toHaveTextContent('使用自己的 API');
@@ -112,7 +121,7 @@ describe('AiSettingsDialog', () => {
 
   it('summarizes demo mode as the active config', async () => {
     mockDemoSettings();
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
     const summary = await screen.findByRole('region', { name: '当前生效配置' });
     expect(summary).toHaveTextContent('演示模式');
   });
@@ -121,7 +130,7 @@ describe('AiSettingsDialog', () => {
     vi.spyOn(api, 'readAiSettings').mockResolvedValue({
       mode: 'compatible', baseUrl: 'https://api.example.com/v1/', model: 'saved-model', hasApiKey: true
     });
-    render(<AiSettingsDialog onClose={vi.fn()} />);
+    renderSettings({ onClose: vi.fn() });
 
     const summary = await screen.findByRole('region', { name: '当前生效配置' });
     await userEvent.clear(screen.getByRole('textbox', { name: '模型名称' }));
@@ -131,10 +140,54 @@ describe('AiSettingsDialog', () => {
     expect(summary).not.toHaveTextContent('draft-model');
   });
 
+  it('switches the whole settings dialog to English and persists the device preference', async () => {
+    mockDemoSettings();
+    renderSettings({ onClose: vi.fn() });
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'English' }));
+
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'AI settings' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Save settings' })).toBeVisible();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en-US');
+  });
+
+  it('does not save the language through workspace UI state', async () => {
+    mockDemoSettings();
+    const saveUiState = vi.spyOn(api, 'saveUiState');
+    renderSettings({ onClose: vi.fn() });
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'English' }));
+
+    expect(saveUiState).not.toHaveBeenCalled();
+  });
+
+  it('switches the whole settings dialog to English and persists the device preference', async () => {
+    mockDemoSettings();
+    renderSettings({ onClose: vi.fn() });
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'English' }));
+
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'AI settings' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Save settings' })).toBeVisible();
+    expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en-US');
+  });
+
+  it('does not save the language through workspace UI state', async () => {
+    mockDemoSettings();
+    const saveUiState = vi.spyOn(api, 'saveUiState');
+    renderSettings({ onClose: vi.fn() });
+
+    await userEvent.click(await screen.findByRole('radio', { name: 'English' }));
+
+    expect(saveUiState).not.toHaveBeenCalled();
+  });
+
   it('closes on Escape', async () => {
     mockDemoSettings();
     const onClose = vi.fn();
-    render(<AiSettingsDialog onClose={onClose} />);
+    renderSettings({ onClose });
     await screen.findByRole('radio', { name: /演示模式/ });
     await userEvent.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalled();

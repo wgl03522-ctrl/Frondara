@@ -1,26 +1,27 @@
 import { ApiError } from '../../api/client.js';
+import { translate, type Locale, type MessageKey } from '../../i18n/messages.js';
 
-const MESSAGES: Record<string, string> = {
-  AI_API_KEY_REQUIRED: '请先填写 API 密钥。',
-  AI_AUTH_FAILED: 'API 密钥无效或已过期，请检查后重试。',
-  AI_ACCESS_DENIED: '当前密钥没有访问该模型或接口的权限。',
-  AI_MODEL_NOT_FOUND: '找不到该模型，请确认模型名称与服务商文档一致。',
-  AI_RATE_LIMITED: '请求过于频繁或额度已用尽，请稍后再试。',
-  AI_CONNECTION_FAILED: '无法连接到该地址，请检查网络与 API 地址。',
-  AI_TIMEOUT: '连接超时，请稍后重试或确认服务是否可达。',
-  AI_UPSTREAM_ERROR: '上游服务返回了错误，请稍后重试。',
-  AI_INVALID_RESPONSE: '服务返回的内容无法解析，请确认地址与模型是否为 OpenAI 兼容接口。',
-  AI_SETTINGS_READ_FAILED: '读取本地 AI 配置失败，配置文件可能已损坏。',
-  AI_SETTINGS_WRITE_FAILED: '保存本地 AI 配置失败，请检查磁盘权限。',
-  AI_SETTINGS_INVALID: '提交的配置无效，请检查各字段。',
-  INVALID_INPUT: '表单填写有误，请检查各字段。'
+const ERROR_KEYS: Record<string, MessageKey> = {
+  AI_API_KEY_REQUIRED: 'error.AI_API_KEY_REQUIRED',
+  AI_AUTH_FAILED: 'error.AI_AUTH_FAILED',
+  AI_ACCESS_DENIED: 'error.AI_ACCESS_DENIED',
+  AI_MODEL_NOT_FOUND: 'error.AI_MODEL_NOT_FOUND',
+  AI_RATE_LIMITED: 'error.AI_RATE_LIMITED',
+  AI_CONNECTION_FAILED: 'error.AI_CONNECTION_FAILED',
+  AI_TIMEOUT: 'error.AI_TIMEOUT',
+  AI_UPSTREAM_ERROR: 'error.AI_UPSTREAM_ERROR',
+  AI_INVALID_RESPONSE: 'error.AI_INVALID_RESPONSE',
+  AI_SETTINGS_READ_FAILED: 'error.AI_SETTINGS_READ_FAILED',
+  AI_SETTINGS_WRITE_FAILED: 'error.AI_SETTINGS_WRITE_FAILED',
+  AI_SETTINGS_INVALID: 'error.AI_SETTINGS_INVALID',
+  INVALID_INPUT: 'error.INVALID_INPUT'
 };
 
-/** Translate an error (typically an ApiError code) into an actionable Chinese message. */
-export function aiErrorMessage(error: unknown, fallback = '操作失败，请稍后重试。'): string {
+export function aiErrorMessage(error: unknown, locale: Locale, fallback?: string): string {
   if (error instanceof ApiError) {
-    return MESSAGES[error.code] ?? error.message ?? fallback;
+    const key = ERROR_KEYS[error.code];
+    return key ? translate(locale, key) : error.message || fallback || translate(locale, 'error.generic');
   }
   if (error instanceof Error && error.message) return error.message;
-  return fallback;
+  return fallback ?? translate(locale, 'error.generic');
 }

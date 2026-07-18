@@ -6,6 +6,7 @@ import { SelectionToolbar, type SelectionDraft } from './SelectionToolbar.js';
 import { createEditorExtensions } from './markdown.js';
 import { setDiscussionHighlights } from './discussion-highlight.js';
 import { useDocument, type DocumentSaveState } from './useDocument.js';
+import { useI18n } from '../../i18n/I18nProvider.js';
 import logoUrl from '../../assets/logo.png';
 
 interface EditorWorkspaceProps {
@@ -29,8 +30,9 @@ export function EditorWorkspace({
   onCreateDraft,
   onOpenExistingDiscussion
 }: EditorWorkspaceProps) {
+  const { locale, t } = useI18n();
   const { document, currentVersionId, loading, error, saveState, save, reload } = useDocument(documentPath);
-  const extensions = useMemo(() => createEditorExtensions(), []);
+  const extensions = useMemo(() => createEditorExtensions(t('editor.placeholder')), [locale]);
   const saveRef = useRef(save);
   const versionRef = useRef(currentVersionId);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -56,7 +58,7 @@ export function EditorWorkspace({
       attributes: {
         class: 'pnode-editor',
         role: 'textbox',
-        'aria-label': 'Markdown 编辑器',
+        'aria-label': t('editor.aria'),
         'aria-multiline': 'true'
       }
     },
@@ -71,7 +73,6 @@ export function EditorWorkspace({
         setSelection(undefined);
         return;
       }
-      const fullText = currentEditor.state.doc.textBetween(0, currentEditor.state.doc.content.size, '\n');
       const before = currentEditor.state.doc.textBetween(0, from, '\n');
       const after = currentEditor.state.doc.textBetween(to, currentEditor.state.doc.content.size, '\n');
       const headingPath = headingsBefore(currentEditor.state.doc, from);
@@ -100,7 +101,6 @@ export function EditorWorkspace({
           documentVersionId: versionRef.current
         }
       });
-      void fullText;
     },
     onUpdate: ({ editor: currentEditor }) => {
       setSelection(undefined);
@@ -108,7 +108,7 @@ export function EditorWorkspace({
       const markdown = currentEditor.getMarkdown();
       timerRef.current = setTimeout(() => void saveRef.current(markdown), 750);
     }
-  }, [documentPath]);
+  }, [documentPath, locale]);
 
   useEffect(() => () => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -119,23 +119,20 @@ export function EditorWorkspace({
   }, [onSaveStateChange, saveState]);
 
   useEffect(() => {
+    loadedVersionRef.current = undefined;
+  }, [editor]);
+
+  useEffect(() => {
     if (!editor || !document || loadedVersionRef.current === document.versionId) return;
     editor.commands.setContent(document.content, { contentType: 'markdown', emitUpdate: false });
     loadedVersionRef.current = document.versionId;
   }, [document, editor]);
 
-  // Re-decorate whenever the discussion set or loaded document changes. Highlights
-  // survive edits via the plugin's docChanged path; new/removed anchors and freshly
-  // loaded content come through here.
   useEffect(() => {
     if (!editor) return;
     setDiscussionHighlights(editor, discussions);
   }, [discussions, editor, document]);
 
-  // Clicks on a highlight are delegated here: the decoration carries a
-  // `data-discussion-id`, so we walk up from the click target to find it and open
-  // the matching discussion. (ProseMirror's own handleClick relies on layout that
-  // jsdom lacks, so React delegation is both testable and more robust.)
   function onHighlightClick(event: ReactMouseEvent<HTMLDivElement>) {
     const target = (event.target as HTMLElement).closest('[data-discussion-id]');
     const id = target?.getAttribute('data-discussion-id');
@@ -149,39 +146,39 @@ export function EditorWorkspace({
       <section className="editor-empty-state">
         <img className="empty-document-mark" src={logoUrl} alt="" aria-hidden="true" />
         <span className="eyebrow">Ideas branch. Context holds.</span>
-        <h1>选择或创建一个 Markdown 文档</h1>
-        <p>文档保存在你的工作区中；讨论、建议和版本记录存放在同目录的 .pnode 元数据中。</p>
+        <h1>{t('editor.emptyTitle')}</h1>
+        <p>{t('editor.emptyBody')}</p>
       </section>
     );
   }
 
-  if (loading && !document) return <div className="editor-loading" role="status">正在打开文档…</div>;
+  if (loading && !document) return <div className="editor-loading" role="status">{t('editor.loading')}</div>;
   if (error && !document) return <div className="editor-error" role="alert">{error}</div>;
 
   return (
-    <section className="editor-workspace" aria-label="文档编辑区">
-      <div className="editor-toolbar" aria-label="编辑器工具栏">
+    <section className="editor-workspace" aria-label={t('editor.region')}>
+      <div className="editor-toolbar" aria-label={t('editor.toolbar')}>
         <div className="toolbar-group">
-          <button type="button" aria-label="粗体" onClick={() => editor?.chain().focus().toggleBold().run()}>B</button>
-          <button type="button" aria-label="斜体" onClick={() => editor?.chain().focus().toggleItalic().run()}><em>I</em></button>
-          <button type="button" aria-label="代码" onClick={() => editor?.chain().focus().toggleCode().run()}>⌘</button>
+          <button type="button" aria-label={t('editor.bold')} onClick={() => editor?.chain().focus().toggleBold().run()}>B</button>
+          <button type="button" aria-label={t('editor.italic')} onClick={() => editor?.chain().focus().toggleItalic().run()}><em>I</em></button>
+          <button type="button" aria-label={t('editor.code')} onClick={() => editor?.chain().focus().toggleCode().run()}>⌘</button>
         </div>
         <div className="toolbar-group toolbar-group--right">
-          {discussions.length > 0 && <span className="discussion-count">{discussions.length} 条讨论</span>}
+          {discussions.length > 0 && <span className="discussion-count">{t('app.discussionCount', { count: discussions.length })}</span>}
           <button type="button" onClick={() => setShowMarkdown((shown) => !shown)}>
-            {showMarkdown ? '返回编辑' : '查看 Markdown'}
+            {showMarkdown ? t('editor.backToEdit') : t('editor.viewMarkdown')}
           </button>
         </div>
       </div>
       {saveState === 'conflict' && (
         <div className="conflict-banner" role="alert">
           <div>
-            <strong>磁盘版本已变化</strong>
-            <span>自动保存已暂停，当前编辑内容仍保留在页面中。</span>
+            <strong>{t('editor.diskChanged')}</strong>
+            <span>{t('editor.autosavePaused')}</span>
           </div>
           <div className="conflict-actions">
-            <button type="button" onClick={() => setShowMarkdown(true)}>比较当前内容</button>
-            <button type="button" onClick={() => void reload()}>重新载入磁盘版本</button>
+            <button type="button" onClick={() => setShowMarkdown(true)}>{t('editor.compare')}</button>
+            <button type="button" onClick={() => void reload()}>{t('editor.reload')}</button>
           </div>
         </div>
       )}
@@ -189,10 +186,10 @@ export function EditorWorkspace({
         <article className="document-paper">
           <div className="document-meta">
             <span>{documentPath}</span>
-            <span>{saveState === 'saving' ? '正在保存…' : saveState === 'saved' ? '已保存' : 'Markdown'}</span>
+            <span>{saveState === 'saving' ? `${t('common.saving')}…` : saveState === 'saved' ? t('common.saved') : 'Markdown'}</span>
           </div>
           {discussions.length > 0 && (
-            <div className="document-discussions" aria-label="文档讨论标记">
+            <div className="document-discussions" aria-label={t('editor.discussionMarkers')}>
               {discussions.map((discussion) => (
                 <button
                   type="button"
@@ -201,18 +198,15 @@ export function EditorWorkspace({
                   key={discussion.id}
                   onClick={() => onOpenExistingDiscussion?.(discussion)}
                 >
-                  <span>{discussion.status === 'draft' ? '批注' : '讨论'}</span>
+                  <span>{discussion.status === 'draft' ? t('editor.note') : t('common.discussion')}</span>
                   <strong>{discussion.anchor.quote}</strong>
                 </button>
               ))}
             </div>
           )}
           {showMarkdown ? (
-            <pre className="markdown-preview" aria-label="当前 Markdown">{editor?.getMarkdown() ?? document?.content ?? ''}</pre>
+            <pre className="markdown-preview" aria-label={t('editor.currentMarkdown')}>{editor?.getMarkdown() ?? document?.content ?? ''}</pre>
           ) : (
-            // Delegate clicks on inline discussion highlights: the decoration
-            // carries data-discussion-id, so a single handler on the wrapper
-            // opens the matching discussion without fighting text selection.
             <div onClick={onHighlightClick}>
               <EditorContent editor={editor} />
             </div>

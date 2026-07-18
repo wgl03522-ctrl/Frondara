@@ -1,15 +1,6 @@
 import { useState } from 'react';
 import type { Discussion } from '@pnode/core';
-
-// Quiet task prompts for the empty state — clicking one fills the composer rather
-// than sending, so the first question is always the user's to confirm.
-const TASK_CHIPS: ReadonlyArray<{ label: string; prompt: string }> = [
-  { label: '检查论证强度', prompt: '检查这段论证的前提、证据和结论强度。' },
-  { label: '寻找隐含前提', prompt: '这段话隐含了哪些未言明的前提？' },
-  { label: '检查引用需求', prompt: '这段陈述中哪些地方需要补充引用或出处？' },
-  { label: '尝试更谨慎的表达', prompt: '在不改变原意的前提下，给出一个更谨慎的表述。' },
-  { label: '从审稿人角度检查', prompt: '假设你是审稿人，这段内容可能会被如何质疑？' }
-];
+import { useI18n } from '../../i18n/I18nProvider.js';
 
 interface DiscussionPanelProps {
   discussion?: Discussion | undefined;
@@ -44,31 +35,33 @@ export function DiscussionPanel({
   onRename,
   onOpenBranch
 }: DiscussionPanelProps) {
+  const { t } = useI18n();
   const draftContent = discussion?.status === 'draft' && discussion.messages[0]?.role === 'user'
     ? discussion.messages[0].content
     : pendingQuestion;
   const [content, setContent] = useState(draftContent);
-  // Fork is a hidden advanced action, revealed only via the message more-menu.
-  // The first thing we ask for is the new *question*, not a name — naming is
-  // deferred and optional (see backlog #1).
   const [menuMessageId, setMenuMessageId] = useState<string>();
   const [forkMessageId, setForkMessageId] = useState<string>();
   const [forkQuestion, setForkQuestion] = useState('');
-  // Renaming the current discussion is opt-in: the title is editable in place.
   const [renaming, setRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState('');
 
+  const taskChips = [
+    { label: t('discussion.task.argumentLabel'), prompt: t('discussion.task.argumentPrompt') },
+    { label: t('discussion.task.premiseLabel'), prompt: t('discussion.task.premisePrompt') },
+    { label: t('discussion.task.citationLabel'), prompt: t('discussion.task.citationPrompt') },
+    { label: t('discussion.task.cautiousLabel'), prompt: t('discussion.task.cautiousPrompt') },
+    { label: t('discussion.task.reviewerLabel'), prompt: t('discussion.task.reviewerPrompt') }
+  ];
   const quote = discussion?.anchor.quote ?? pendingQuote;
   const headingPath = discussion?.anchor.headingPath ?? [];
-  const positionLabel = headingPath.length > 0 ? headingPath.join(' · ') : '当前段落';
+  const positionLabel = headingPath.length > 0 ? headingPath.join(' · ') : t('discussion.currentParagraph');
   const messageCount = discussion?.status === 'active' ? discussion.messages.length : 0;
 
   async function send() {
     if (!onSend || !content.trim()) return;
     const text = content.trim();
     await onSend(text);
-    // Clear the composer once the turn is sent so the next question starts fresh.
-    // App surfaces any failure via the error prop; the text is already captured.
     setContent('');
   }
 
@@ -101,65 +94,62 @@ export function DiscussionPanel({
   }
 
   return (
-    <aside className="discussion-panel" aria-label="段落讨论">
+    <aside className="discussion-panel" aria-label={t('discussion.panel')}>
       <header className="panel-header">
         <div className="panel-title">
-          <span className="eyebrow">锚定讨论</span>
+          <span className="eyebrow">{t('discussion.anchored')}</span>
           {renaming ? (
-            <form
-              className="rename-form"
-              onSubmit={(event) => { event.preventDefault(); submitRename(); }}
-            >
+            <form className="rename-form" onSubmit={(event) => { event.preventDefault(); submitRename(); }}>
               <input
-                aria-label="讨论名称"
+                aria-label={t('discussion.name')}
                 value={renameTitle}
                 onChange={(event) => setRenameTitle(event.target.value)}
                 autoFocus
               />
-              <button type="submit" className="button button--primary" disabled={!renameTitle.trim()}>保存</button>
-              <button type="button" className="button button--ghost" onClick={() => setRenaming(false)}>取消</button>
+              <button type="submit" className="button button--primary" disabled={!renameTitle.trim()}>{t('common.save')}</button>
+              <button type="button" className="button button--ghost" onClick={() => setRenaming(false)}>{t('common.cancel')}</button>
             </form>
           ) : (
             <h2>
-              {discussion?.title ?? '段落讨论'}
+              {discussion?.title ?? t('discussion.panel')}
               {discussion && onRename && (
-                <button type="button" className="rename-trigger" aria-label="重命名讨论" onClick={beginRename}>重命名</button>
+                <button type="button" className="rename-trigger" aria-label={t('discussion.rename')} onClick={beginRename}>{t('discussion.rename')}</button>
               )}
             </h2>
           )}
         </div>
-        <button type="button" className="icon-button" aria-label="关闭讨论" onClick={onClose}>×</button>
+        <button type="button" className="icon-button" aria-label={t('discussion.close')} onClick={onClose}>×</button>
       </header>
       {!quote ? (
         <div className="discussion-empty">
-          <strong>尚未选择讨论</strong>
-          <p>选中文档中的文字，即可与 AI 讨论或添加批注。</p>
+          <strong>{t('discussion.emptyTitle')}</strong>
+          <p>{t('discussion.emptyBody')}</p>
         </div>
       ) : (
         <div className="discussion-body">
           {parent && onOpenBranch && (
             <button type="button" className="branch-back" onClick={() => onOpenBranch(parent)}>
-              ← 返回上级讨论：{parent.title}
+              {t('discussion.backToParent', { title: parent.title })}
             </button>
           )}
-          <section className="anchor-card" aria-label="关联原文">
+          <section className="anchor-card" aria-label={t('discussion.source')}>
             <span className="anchor-position">{positionLabel}</span>
             <blockquote>“{quote}”</blockquote>
           </section>
           {messageCount > 0 ? (
-            <div className="message-list" aria-label="讨论消息">
+            <div className="message-list" aria-label={t('discussion.messages')}>
               {discussion!.messages.map((message) => {
                 const messageBranches = branchesForMessage(message.id);
                 return (
                   <article className={`message message--${message.role}`} key={message.id}>
                     <div className="message-head">
-                      <span>{message.role === 'user' ? '你' : 'AI'}</span>
+                      <span>{message.role === 'user' ? t('discussion.you') : 'AI'}</span>
                       {onFork && (
                         <div className="message-menu">
                           <button
                             type="button"
                             className="icon-button message-more"
-                            aria-label="更多操作"
+                            aria-label={t('discussion.moreActions')}
                             aria-expanded={menuMessageId === message.id}
                             onClick={() => setMenuMessageId((current) => current === message.id ? undefined : message.id)}
                           >
@@ -167,9 +157,7 @@ export function DiscussionPanel({
                           </button>
                           {menuMessageId === message.id && (
                             <div className="message-menu-list">
-                              <button type="button" onClick={() => beginFork(message.id)}>
-                                从这里另行讨论
-                              </button>
+                              <button type="button" onClick={() => beginFork(message.id)}>{t('discussion.fork')}</button>
                             </div>
                           )}
                         </div>
@@ -178,34 +166,29 @@ export function DiscussionPanel({
                     <p>{message.content}</p>
                     {forkMessageId === message.id && (
                       <div className="fork-form">
-                        <label htmlFor={`fork-${message.id}`}>从这里另行讨论</label>
+                        <label htmlFor={`fork-${message.id}`}>{t('discussion.fork')}</label>
                         <textarea
                           id={`fork-${message.id}`}
-                          aria-label="新讨论问题"
+                          aria-label={t('discussion.newQuestion')}
                           value={forkQuestion}
                           onChange={(event) => setForkQuestion(event.target.value)}
-                          placeholder="想从这里另外问什么？"
+                          placeholder={t('discussion.forkPlaceholder')}
                           autoFocus
                         />
                         <div className="fork-actions">
-                          <button type="button" className="button button--ghost" onClick={() => setForkMessageId(undefined)}>取消</button>
+                          <button type="button" className="button button--ghost" onClick={() => setForkMessageId(undefined)}>{t('common.cancel')}</button>
                           <button type="button" className="button button--primary" disabled={!forkQuestion.trim() || sending} onClick={submitFork}>
-                            {sending ? '创建中' : '开始讨论'}
+                            {sending ? t('common.creating') : t('discussion.start')}
                           </button>
                         </div>
-                        <p className="ai-hint">这会新开一个讨论分支，名称默认取你的第一个问题，之后可改。</p>
+                        <p className="ai-hint">{t('discussion.forkHint')}</p>
                       </div>
                     )}
                     {messageBranches.length > 0 && (
-                      <div className="message-branches" aria-label="讨论方向">
-                        <span className="ai-hint">该消息产生了 {messageBranches.length} 个讨论方向</span>
+                      <div className="message-branches" aria-label={t('discussion.directions')}>
+                        <span className="ai-hint">{t('discussion.directionCount', { count: messageBranches.length })}</span>
                         {messageBranches.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            className="branch-link"
-                            onClick={() => onOpenBranch?.(item)}
-                          >
+                          <button key={item.id} type="button" className="branch-link" onClick={() => onOpenBranch?.(item)}>
                             {item.title}
                           </button>
                         ))}
@@ -216,42 +199,37 @@ export function DiscussionPanel({
               })}
             </div>
           ) : (
-            <div className="discussion-tasks" aria-label="讨论切入点">
-              <p className="discussion-tasks-lead">你想从哪个角度分析这段内容？</p>
+            <div className="discussion-tasks" aria-label={t('discussion.entryPoints')}>
+              <p className="discussion-tasks-lead">{t('discussion.angle')}</p>
               <div className="task-chips">
-                {TASK_CHIPS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    className="task-chip"
-                    onClick={() => setContent(chip.prompt)}
-                  >
+                {taskChips.map((chip) => (
+                  <button key={chip.label} type="button" className="task-chip" onClick={() => setContent(chip.prompt)}>
                     {chip.label}
                   </button>
                 ))}
               </div>
-              <p className="ai-hint">AI 将参考当前段落与所选上下文，不会直接修改正文。</p>
+              <p className="ai-hint">{t('discussion.aiHint')}</p>
             </div>
           )}
           <div className="discussion-composer">
             {onOpenContext && (
-              <button type="button" className="context-toggle" aria-label="管理上下文" onClick={onOpenContext}>
-                上下文
-                <span>{contextSummary ?? '默认'}</span>
+              <button type="button" className="context-toggle" aria-label={t('discussion.manageContext')} onClick={onOpenContext}>
+                {t('discussion.context')}
+                <span>{contextSummary ?? t('common.default')}</span>
               </button>
             )}
-            <label className="sr-only" htmlFor="discussion-input">讨论输入</label>
+            <label className="sr-only" htmlFor="discussion-input">{t('discussion.input')}</label>
             <div className="composer-field">
               <textarea
                 id="discussion-input"
-                aria-label="讨论输入"
+                aria-label={t('discussion.input')}
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
-                placeholder="继续围绕所选原文讨论…"
+                placeholder={t('discussion.placeholder')}
               />
               <div className="composer-bar">
                 <span className="composer-hint">
-                  {discussion?.status === 'draft' ? '发送后将转为 AI 讨论' : '点“上下文”管理参考材料'}
+                  {discussion?.status === 'draft' ? t('discussion.draftHint') : t('discussion.contextHint')}
                 </span>
                 <button
                   type="button"
@@ -259,7 +237,7 @@ export function DiscussionPanel({
                   disabled={!content.trim() || sending || !onSend}
                   onClick={send}
                 >
-                  {sending ? '发送中' : '发送'}
+                  {sending ? t('common.sending') : t('common.send')}
                 </button>
               </div>
             </div>
