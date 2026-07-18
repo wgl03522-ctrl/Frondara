@@ -8,9 +8,14 @@
     让文档中的每个关键段落，都成为 AI 对话生长的起点。
   </p>
   <p>
-    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/download/v0.1.0/Frondara-0.1.0-portable.exe"><strong>下载 Frondara 0.1.0 · Windows x64 便携版</strong></a>
+    <strong>简体中文</strong>
     &nbsp;&nbsp;·&nbsp;&nbsp;
-    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/tag/v0.1.0">发布说明</a>
+    <a href="README_EN.md">English</a>
+  </p>
+  <p>
+    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/download/v0.1.1/Frondara-0.1.1-portable.exe"><strong>下载 Frondara 0.1.1 · Windows x64 便携版</strong></a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="https://github.com/wgl03522-ctrl/Frondara/releases/tag/v0.1.1">发布说明</a>
   </p>
 </div>
 
